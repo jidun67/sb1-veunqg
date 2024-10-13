@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            @apply bg-gray-900 text-white;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-gray-800 py-4 px-6 flex items-center justify-center shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500 mr-2">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <h1 class="text-2xl font-bold">Hermes</h1>
+    </header>
+    <main class="flex-grow flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-3xl bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+            <div id="chat-messages" class="h-[60vh] overflow-y-auto p-4 space-y-4"></div>
+            <form id="chat-form" class="bg-gray-700 p-4 flex">
+                <input type="text" id="user-input" placeholder="Type your message..." class="flex-grow bg-gray-600 text-white rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button type="submit" class="bg-purple-600 text-white rounded-r-lg px-4 py-2 hover:bg-opacity-90 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                userInput.value = '';
+                const response = await sendMessage(message);
+                addMessage('assistant', response);
+            }
+        });
+
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            messageDiv.innerHTML = `
+                <div class="max-w-[70%] rounded-lg p-3 ${
+                    role === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-200'
+                }">
+                    ${content}
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage(message) {
+            const response = await fetch('/send_message/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message }),
+            });
+            const data = await response.json();
+            return data.message;
+        }
+
+        // Initial greeting
+        addMessage('assistant', "What would you ask of me, seeker?");
+    </script>
+</body>
+</html>
